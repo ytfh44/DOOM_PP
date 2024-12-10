@@ -1,0 +1,63 @@
+# Autotools generated files
+Makefile
+Makefile.in
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/config.*
+/build-aux/
+.deps/
+.libs/
+*.la
+*.lo
+*.o
+*.a
+
+# Build directories
+/build/
+/deps/build/
+/deps/install/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Compiled binaries
+/doom_pp
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependencies
+/deps/downloads/
+SDL2-*/
+VulkanSDK*/
+
+# Windows specific
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll.manifest
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Package files
+*.tar.gz
+*.zip 
