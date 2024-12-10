@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         include:
@@ -18,17 +19,49 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y autoconf automake libtool pkg-config
               sudo apt-get install -y libsdl2-dev libvulkan-dev
+              sudo apt-get install -y clang-format cppcheck
+            cc: gcc
+            cxx: g++
           - os: windows-latest
             install: |
               choco install autoconf automake libtool pkg-config
               choco install mingw
               choco install vulkan-sdk
+              choco install llvm
+            cc: gcc
+            cxx: g++
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps/build
+          deps/install
+        key: ${{ runner.os }}-deps-${{ hashFiles('deps/download_deps.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
     - name: Install dependencies
       run: ${{ matrix.install }}
+
+    - name: Set up environment
+      shell: bash
+      run: |
+        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+
+    - name: Code format check
+      if: runner.os == 'Linux'
+      run: |
+        find src -name '*.cpp' -o -name '*.h' | xargs clang-format -n -Werror
+
+    - name: Static analysis
+      if: runner.os == 'Linux'
+      run: |
+        cppcheck --enable=all --error-exitcode=1 --suppress=missingInclude src/
 
     - name: Generate build system
       shell: bash
@@ -38,12 +71,12 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-        ./configure
+        ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra"
 
     - name: Build
       shell: bash
       run: |
-        make
+        make -j$(nproc)
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
@@ -52,4 +85,20 @@ jobs:
         path: |
           doom_pp
           doom_pp.exe
-        if-no-files-found: ignore 
+        if-no-files-found: ignore
+
+  analyze:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: cpp
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2 
