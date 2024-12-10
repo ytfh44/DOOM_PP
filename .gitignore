@@ -17,29 +17,106 @@ Makefile.in
 *.lo
 *.o
 *.a
+.dirstamp
+ltmain.sh
+libtool
+m4/libtool.m4
+m4/lt*.m4
+ar-lib
+confdefs.h
+conftest*
+conf*[0-9]*
+test-driver
 
 # Build directories
 /build/
 /deps/build/
 /deps/install/
+/bin/
+/lib/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+Testing/
+DartConfiguration.tcl
+CTestTestfile.cmake
+_deps/
 
 # IDE and editor files
 .vscode/
 .idea/
 *.swp
 *~
+*.swo
+*.swn
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+.clangd/
+compile_commands.json
+.cache/
+*.sublime-workspace
+*.sublime-project
+.project
+.cproject
+.settings/
+.kdev4/
+*.kdev4
+.ccls-cache/
+.dir-locals.el
+.projectile
+tags
+TAGS
+.tags
+.tags_sorted_by_file
+.vim/
+Session.vim
+.netrwhist
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
 
-# Compiled binaries
+# Compiled binaries and objects
 /doom_pp
 *.exe
 *.dll
 *.so
 *.dylib
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.map
+*.elf
+*.bin
+*.list
+*.sym
 
 # Dependencies
 /deps/downloads/
 SDL2-*/
 VulkanSDK*/
+/external/
+/third_party/
+/vendor/
+/.cargo/
+/node_modules/
+/packages/
+/.pnp/
+.pnp.js
+/bower_components/
 
 # Windows specific
 *.obj
@@ -48,16 +125,145 @@ VulkanSDK*/
 *.exp
 *.lib
 *.dll.manifest
+*.res
+*.idb
+*.ipch
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
+*.intermediate
+Debug/
+Release/
+x64/
+Win32/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.sln.docstates
+$RECYCLE.BIN/
 
 # macOS specific
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
+.Spotlight-V100
+.Trashes
+xcuserdata/
+*.xcworkspace
+*.xcodeproj
+.apdisk
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+Icon?
+
+# Linux specific
+*.ko
+*.mod.c
+.tmp_versions/
+modules.order
+Module.symvers
+.directory
+.Trash-*
+.nfs*
+*.patch
+*.diff
 
 # Logs and databases
 *.log
 *.sqlite
+*.db
+core
+vgcore.*
+*.stackdump
+*.core
+*.ldb
+*.rdb
+*.pid
+*.seed
+*.pid.lock
 
 # Package files
 *.tar.gz
-*.zip 
+*.zip
+*.7z
+*.rar
+*.deb
+*.rpm
+*.xz
+*.bz2
+*.gz
+*.jar
+*.war
+*.ear
+*.sar
+*.class
+
+# Project specific
+shaders/*.spv
+assets/textures/*.cache
+assets/models/*.cache
+.shader_cache/
+.vulkan_cache/
+config.h
+config.h.in
+config.status
+*.pc
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.orig
+*~
+\#*\#
+.\#*
+*.save
+
+# Documentation
+/docs/_build/
+/docs/_static/
+/docs/_templates/
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# Coverage and analysis
+*.gcno
+*.gcda
+*.gcov
+coverage/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage.info
+*.profraw
+*.profdata
+perf.data
+perf.data.old
+
+# Environment and local config
+.env
+.env.local
+.env.*.local
+.envrc
+.direnv/
+*.local
+local.properties
+.gradle/
+.npm/
+.yarn/
+.config/
+.local/ 
