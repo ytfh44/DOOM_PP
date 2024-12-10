@@ -21,7 +21,11 @@ doom_pp_CPPFLAGS = \
 
 EXTRA_DIST = \
     README.md \
-    autogen.sh
+    autogen.sh \
+    .clang-format \
+    format_code.sh \
+    config.env.template
 
 dist-hook:
-	chmod +x $(distdir)/autogen.sh 
+	chmod +x $(distdir)/autogen.sh \
+	chmod +x $(distdir)/format_code.sh

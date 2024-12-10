@@ -8,7 +8,11 @@ libdoom_a_SOURCES = \
 
 libdoom_a_CPPFLAGS = \
     $(SDL2_CFLAGS) \
-    $(VULKAN_CFLAGS)
+    $(VULKAN_CFLAGS) \
+    -I$(top_srcdir)/src \
+    -std=c++11 \
+    -D_USE_MATH_DEFINES \
+    -DVK_USE_PLATFORM_WIN32_KHR
 
 pkginclude_HEADERS = \
     renderer/vulkan_renderer.h \

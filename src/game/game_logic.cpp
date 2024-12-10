@@ -10,4 +10,4 @@ void GameLogic::update() {
 
 GameLogic::~GameLogic() {
     // Cleanup game resources
-} 
+}

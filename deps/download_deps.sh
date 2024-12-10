@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Load proxy settings if config exists
+if [ -f "../config.env" ]; then
+    source ../config.env
+fi
+
 DEPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$DEPS_DIR/build"
 INSTALL_DIR="$DEPS_DIR/install"
@@ -8,13 +13,29 @@ INSTALL_DIR="$DEPS_DIR/install"
 mkdir -p "$BUILD_DIR"
 mkdir -p "$INSTALL_DIR"
 
+# 下载函数，支持代理
+download_file() {
+    local url=$1
+    local output_file=$2
+    echo "Downloading $url to $output_file..."
+    wget --no-check-certificate \
+         --proxy=on \
+         --proxy-user= \
+         --proxy-password= \
+         -O "$output_file" \
+         "$url"
+}
+
 download_sdl2() {
     local version=$1
     echo "Downloading SDL2 version $version..."
     
     cd "$BUILD_DIR"
-    wget "https://github.com/libsdl-org/SDL/releases/download/release-$version/SDL2-$version.tar.gz"
-    tar xzf "SDL2-$version.tar.gz"
+    local sdl2_url="https://github.com/libsdl-org/SDL/releases/download/release-$version/SDL2-$version.tar.gz"
+    local sdl2_archive="SDL2-$version.tar.gz"
+    
+    download_file "$sdl2_url" "$sdl2_archive"
+    tar xzf "$sdl2_archive"
     cd "SDL2-$version"
     
     ./configure --prefix="$INSTALL_DIR" \
@@ -35,12 +56,16 @@ download_vulkan() {
     cd "$BUILD_DIR"
     if [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32" ]]; then
         # Windows version
-        wget "https://sdk.lunarg.com/sdk/download/$version/windows/VulkanSDK-$version-Installer.exe"
-        ./VulkanSDK-$version-Installer.exe --root "$INSTALL_DIR" --accept-licenses --default-answer --confirm-command
+        local vulkan_url="https://sdk.lunarg.com/sdk/download/$version/windows/VulkanSDK-$version-Installer.exe"
+        local vulkan_installer="VulkanSDK-$version-Installer.exe"
+        download_file "$vulkan_url" "$vulkan_installer"
+        ./"$vulkan_installer" --root "$INSTALL_DIR" --accept-licenses --default-answer --confirm-command
     else
         # Linux version
-        wget "https://sdk.lunarg.com/sdk/download/$version/linux/vulkansdk-linux-x86_64-$version.tar.gz"
-        tar xzf "vulkansdk-linux-x86_64-$version.tar.gz"
+        local vulkan_url="https://sdk.lunarg.com/sdk/download/$version/linux/vulkansdk-linux-x86_64-$version.tar.gz"
+        local vulkan_archive="vulkansdk-linux-x86_64-$version.tar.gz"
+        download_file "$vulkan_url" "$vulkan_archive"
+        tar xzf "$vulkan_archive"
         cp -r "$version"/* "$INSTALL_DIR/"
     fi
     

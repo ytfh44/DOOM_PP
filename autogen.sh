@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Load proxy settings if config exists
+if [ -f "./config.env" ]; then
+    source ./config.env
+fi
+
 # Check for required tools
 for tool in autoconf automake libtool pkg-config wget tar; do
     if ! command -v $tool >/dev/null 2>&1; then

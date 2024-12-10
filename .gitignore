@@ -367,4 +367,7 @@ env/
 .ruby-version
 .node-version
 .tool-versions
-.vagrant/ 
+.vagrant/
+
+# Local configuration
+config.env 

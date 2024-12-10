@@ -9,7 +9,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 AC_CONFIG_SRCDIR([src/main.cpp])
 
 # 设置宏目录
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # 初始化automake
@@ -46,10 +46,6 @@ AC_PATH_PROG([TAR], [tar])
 # 检查C++11支持
 AX_CXX_COMPILE_STDCXX_11([mandatory], [noext])
 
-# 初始化下载标志
-need_download_sdl2=no
-need_download_vulkan=no
-
 # SDL2检查和自动下载
 SDL2_VERSION="2.26.5"
 AC_ARG_WITH([sdl2],
@@ -58,7 +54,7 @@ AC_ARG_WITH([sdl2],
     [SDL2_PATH=""])
 
 AS_IF([test "x$SDL2_PATH" != "x"],
-    [SDL2_CFLAGS="-I$SDL2_PATH/include/SDL2"
+    [SDL2_CFLAGS="-I$SDL2_PATH/include"
      if test "x$windows" = "xyes"; then
          SDL2_LIBS="-L$SDL2_PATH/lib -lSDL2main -lSDL2"
      else
@@ -75,6 +71,18 @@ AC_ARG_WITH([vulkan-sdk],
     [AS_HELP_STRING([--with-vulkan-sdk=DIR], [Vulkan SDK installation directory])],
     [VULKAN_SDK="$withval"],
     [VULKAN_SDK=""])
+
+# 检查Vulkan头文件
+AC_CHECK_HEADERS([vulkan/vulkan.h], [],
+    [if test "x$VULKAN_SDK" != "x"; then
+        VULKAN_CFLAGS="-I$VULKAN_SDK/include"
+        export CPPFLAGS="$CPPFLAGS $VULKAN_CFLAGS"
+        unset ac_cv_header_vulkan_vulkan_h
+        AC_CHECK_HEADERS([vulkan/vulkan.h], [],
+            [AC_MSG_ERROR([Vulkan headers not found even with specified SDK])])
+     else
+        AC_MSG_ERROR([Vulkan headers not found. Please install Vulkan SDK or specify its location])
+     fi])
 
 AS_IF([test "x$VULKAN_SDK" != "x"],
     [VULKAN_CFLAGS="-I$VULKAN_SDK/include"

@@ -1,7 +1,8 @@
+#include "game/game_logic.h"
+#include "renderer/vulkan_renderer.h"
+
 #include <SDL.h>
 #include <vulkan/vulkan.h>
-#include "renderer/vulkan_renderer.h"
-#include "game/game_logic.h"
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -9,7 +10,7 @@ int main(int argc, char* argv[]) {
         // Handle initialization error
         return -1;
     }
-    
+
     VulkanRenderer renderer;
     GameLogic game;
 
@@ -30,4 +31,4 @@ int main(int argc, char* argv[]) {
     // Cleanup
     SDL_Quit();
     return 0;
-} 
+}
