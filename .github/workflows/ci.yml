@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            install: |
+              sudo apt-get update
+              sudo apt-get install -y autoconf automake libtool pkg-config
+              sudo apt-get install -y libsdl2-dev libvulkan-dev
+          - os: windows-latest
+            install: |
+              choco install autoconf automake libtool pkg-config
+              choco install mingw
+              choco install vulkan-sdk
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: ${{ matrix.install }}
+
+    - name: Generate build system
+      shell: bash
+      run: |
+        ./autogen.sh
+
+    - name: Configure
+      shell: bash
+      run: |
+        ./configure
+
+    - name: Build
+      shell: bash
+      run: |
+        make
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: doom_pp-${{ matrix.os }}
+        path: |
+          doom_pp
+          doom_pp.exe
+        if-no-files-found: ignore 
