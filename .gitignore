@@ -27,6 +27,13 @@ confdefs.h
 conftest*
 conf*[0-9]*
 test-driver
+.libs/
+.deps/
+*.Po
+*.Plo
+*.lai
+*.m4
+ylwrap
 
 # Build directories
 /build/
@@ -42,6 +49,9 @@ Testing/
 DartConfiguration.tcl
 CTestTestfile.cmake
 _deps/
+[Bb]uild*/
+[Oo]ut/
+[Ii]nstall/
 
 # IDE and editor files
 .vscode/
@@ -82,6 +92,13 @@ Session.vim
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+*.code-workspace
+.history/
+.ionide/
+*.workspace
+*.workspace.xml
+*.iml
+.fleet/
 
 # Compiled binaries and objects
 /doom_pp
@@ -103,6 +120,12 @@ Session.vim
 *.bin
 *.list
 *.sym
+*.spv
+*.spirv
+*.dxil
+*.metal
+*.air
+*.metallib
 
 # Dependencies
 /deps/downloads/
@@ -117,6 +140,10 @@ VulkanSDK*/
 /.pnp/
 .pnp.js
 /bower_components/
+/vcpkg/
+/conan/
+/deps/downloads/
+/deps/cache/
 
 # Windows specific
 *.obj
@@ -143,6 +170,15 @@ Win32/
 *.msp
 *.sln.docstates
 $RECYCLE.BIN/
+*.aps
+*.ncb
+*.opendb
+*.cachefile
+*.VC.VC.opendb
+*.VC.db-*
+ipch/
+[Tt]emp/
+[Tt]mp/
 
 # macOS specific
 .DS_Store
@@ -160,6 +196,11 @@ xcuserdata/
 Network Trash Folder
 Temporary Items
 Icon?
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
 # Linux specific
 *.ko
@@ -172,6 +213,9 @@ Module.symvers
 .nfs*
 *.patch
 *.diff
+.gdb_history
+core.*
+!core/
 
 # Logs and databases
 *.log
@@ -186,6 +230,8 @@ vgcore.*
 *.pid
 *.seed
 *.pid.lock
+crash-*
+*.dump
 
 # Package files
 *.tar.gz
@@ -202,6 +248,8 @@ vgcore.*
 *.ear
 *.sar
 *.class
+*.pak
+*.vpk
 
 # Project specific
 shaders/*.spv
@@ -213,6 +261,27 @@ config.h
 config.h.in
 config.status
 *.pc
+/assets/generated/
+/assets/processed/
+/assets/compressed/
+/shaders/compiled/
+/shaders/intermediate/
+/resources/cache/
+.asset_cache/
+.resource_cache/
+.build_cache/
+.compile_cache/
+game.cfg
+engine.cfg
+user.cfg
+*.save
+*.sav
+*.savegame
+*.replay
+*.demo
+*.profile
+*.trace
+*.renderdoc
 
 # Temporary files
 *.tmp
@@ -224,6 +293,11 @@ config.status
 \#*\#
 .\#*
 *.save
+*.old
+*.prev
+*.local
+*_backup
+*_bak
 
 # Documentation
 /docs/_build/
@@ -236,6 +310,18 @@ config.status
 *.xlsx
 *.ppt
 *.pptx
+*.chm
+*.chi
+*.chw
+/api/
+/manual/
+/reference/
+/examples/
+*.html
+*.htm
+*.css
+*.js
+!src/**/*.js
 
 # Coverage and analysis
 *.gcno
@@ -253,6 +339,12 @@ coverage.info
 *.profdata
 perf.data
 perf.data.old
+callgrind.out.*
+cachegrind.out.*
+massif.out.*
+*.nvprof
+*.nvvp
+*.nsight-cuprof-report
 
 # Environment and local config
 .env
@@ -266,4 +358,13 @@ local.properties
 .npm/
 .yarn/
 .config/
-.local/ 
+.local/
+.venv/
+venv/
+ENV/
+env/
+.python-version
+.ruby-version
+.node-version
+.tool-versions
+.vagrant/ 
