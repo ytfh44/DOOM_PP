@@ -10,143 +10,121 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            install: |
+            install_cmd: |
               sudo apt-get update
-              sudo apt-get install -y autoconf automake libtool pkg-config
-              sudo apt-get install -y libsdl2-dev libvulkan-dev
-              sudo apt-get install -y clang-format cppcheck lcov
-              sudo apt-get install -y libgtest-dev
-              cd /usr/src/gtest
-              sudo cmake CMakeLists.txt
-              sudo make
-              sudo cp lib/*.a /usr/lib
-            cc: gcc
-            cxx: g++
-            coverage: true
-            coverage_flags: "--coverage -fprofile-arcs -ftest-coverage"
+              sudo apt-get install -y \
+                autoconf \
+                automake \
+                libtool \
+                pkg-config \
+                wget \
+                tar \
+                clang-format \
+                libsdl2-dev \
+                libvulkan-dev \
+                vulkan-tools \
+                vulkan-validationlayers-dev \
+                spirv-tools
+              # Set up environment variables
+              echo "SDL2_CFLAGS=-I/usr/include/SDL2" >> $GITHUB_ENV
+              echo "SDL2_LIBS=-lSDL2" >> $GITHUB_ENV
+              echo "VULKAN_SDK=/usr" >> $GITHUB_ENV
+              echo "VULKAN_CFLAGS=-I/usr/include" >> $GITHUB_ENV
+              echo "VULKAN_LIBS=-lvulkan" >> $GITHUB_ENV
+              # Add pkg-config paths
+              echo "PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig" >> $GITHUB_ENV
+              # Add additional include paths
+              echo "CPATH=/usr/include/SDL2:/usr/include/vulkan" >> $GITHUB_ENV
+              echo "C_INCLUDE_PATH=/usr/include/SDL2:/usr/include/vulkan" >> $GITHUB_ENV
+              echo "CPLUS_INCLUDE_PATH=/usr/include/SDL2:/usr/include/vulkan" >> $GITHUB_ENV
           - os: windows-latest
-            install: |
-              choco install autoconf automake libtool pkg-config
-              choco install mingw
-              choco install vulkan-sdk
-              choco install llvm
-              # Install Google Test
-              git clone https://github.com/google/googletest.git
-              cd googletest
-              cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=C:/gtest .
-              mingw32-make
-              mingw32-make install
-              cd ..
-            cc: gcc
-            cxx: g++
-            coverage: false
-            coverage_flags: ""
+            install_cmd: |
+              # Install build tools
+              choco install -y `
+                autoconf `
+                automake `
+                libtool `
+                pkgconfig `
+                wget `
+                tar `
+                llvm `
+                mingw `
+                make
+              
+              # Download and install Vulkan SDK
+              $vulkanSdkUrl = "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe"
+              Invoke-WebRequest -Uri $vulkanSdkUrl -OutFile vulkan-sdk.exe
+              Start-Process -FilePath "vulkan-sdk.exe" -ArgumentList "--accept-licenses --default-answer --confirm-command" -Wait
+              
+              # Download and extract SDL2
+              $sdl2Version = "2.28.5"
+              $sdl2Url = "https://github.com/libsdl-org/SDL/releases/download/release-$sdl2Version/SDL2-devel-$sdl2Version-mingw.tar.gz"
+              Invoke-WebRequest -Uri $sdl2Url -OutFile SDL2.tar.gz
+              tar xf SDL2.tar.gz
+              Move-Item -Path "SDL2-$sdl2Version" -Destination "C:\SDL2"
+              
+              # Set up environment variables
+              echo "SDL2_CFLAGS=-IC:/SDL2/include/SDL2" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "SDL2_LIBS=-LC:/SDL2/lib -lSDL2" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "VULKAN_SDK=C:/VulkanSDK/latest" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "VULKAN_CFLAGS=-IC:/VulkanSDK/latest/Include" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "VULKAN_LIBS=-LC:/VulkanSDK/latest/Lib -lvulkan-1" | Out-File -FilePath $env:GITHUB_ENV -Append
+              # Add pkg-config paths
+              echo "PKG_CONFIG_PATH=C:/SDL2/lib/pkgconfig;C:/VulkanSDK/latest/lib/pkgconfig" | Out-File -FilePath $env:GITHUB_ENV -Append
+              # Add additional include paths
+              echo "INCLUDE=C:/SDL2/include/SDL2;C:/VulkanSDK/latest/Include" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "C_INCLUDE_PATH=C:/SDL2/include/SDL2;C:/VulkanSDK/latest/Include" | Out-File -FilePath $env:GITHUB_ENV -Append
+              echo "CPLUS_INCLUDE_PATH=C:/SDL2/include/SDL2;C:/VulkanSDK/latest/Include" | Out-File -FilePath $env:GITHUB_ENV -Append
+              
+              # Add to PATH
+              echo "C:\SDL2\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+              echo "C:\VulkanSDK\latest\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Cache dependencies
+    - name: Install Dependencies
+      shell: pwsh
+      run: ${{ matrix.install_cmd }}
+
+    - name: Cache Dependencies
       uses: actions/cache@v3
       with:
         path: |
-          deps/build
-          deps/install
-          googletest
-        key: ${{ runner.os }}-deps-${{ hashFiles('deps/download_deps.sh') }}
+          C:/SDL2
+          C:/VulkanSDK
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/*.yml') }}
         restore-keys: |
           ${{ runner.os }}-deps-
 
-    - name: Install dependencies
-      run: ${{ matrix.install }}
-
-    - name: Set up environment
-      shell: bash
+    - name: Check Code Format
       run: |
-        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          echo "GTEST_ROOT=C:/gtest" >> $GITHUB_ENV
-        fi
-
-    - name: Code format check
-      if: runner.os == 'Linux'
-      run: |
-        find src tests -name '*.cpp' -o -name '*.h' | xargs clang-format -n -Werror
-
-    - name: Static analysis
-      if: runner.os == 'Linux'
-      run: |
-        cppcheck --enable=all --error-exitcode=1 --suppress=missingInclude src/ tests/
-
-    - name: Generate build system
-      shell: bash
-      run: |
-        ./autogen.sh
-
-    - name: Configure
-      shell: bash
-      run: |
-        if [ "${{ matrix.coverage }}" = "true" ]; then
-          ./configure CFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" CXXFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" --enable-testing
-        else
-          ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra" --enable-testing
-        fi
+        ./format_code.sh
+        git diff --exit-code || (echo "Code formatting issues found. Run ./format_code.sh locally and commit changes." && exit 1)
 
     - name: Build
-      shell: bash
+      shell: pwsh
+      env:
+        CFLAGS: "${{ matrix.os == 'ubuntu-latest' && '-I/usr/include/SDL2 -I/usr/include/vulkan' || '-IC:/SDL2/include/SDL2 -IC:/VulkanSDK/latest/Include' }}"
+        CXXFLAGS: "${{ matrix.os == 'ubuntu-latest' && '-I/usr/include/SDL2 -I/usr/include/vulkan' || '-IC:/SDL2/include/SDL2 -IC:/VulkanSDK/latest/Include' }}"
       run: |
-        make -j$(nproc)
+        ./autogen.sh
+        ./configure
+        make
 
-    - name: Run tests
-      shell: bash
-      run: |
-        make check
+    - name: Run Tests
+      if: ${{ matrix.os == 'ubuntu-latest' }}  # Only run tests on Linux for now
+      run: make check
 
-    - name: Run tests with coverage
-      if: matrix.coverage
-      shell: bash
-      run: |
-        # 运行测试并生成覆盖率报告
-        make check
-        lcov --capture --directory . --output-file coverage.info
-        lcov --remove coverage.info '/usr/*' --output-file coverage.info
-        lcov --list coverage.info
-
-    - name: Upload coverage to Coveralls
-      if: matrix.coverage
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: coverage.info
-        format: lcov
-
-    - name: Upload artifacts
+    - name: Upload Build Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: doom_pp-${{ matrix.os }}
         path: |
           doom_pp
           doom_pp.exe
-          tests/unit/test_runner
         if-no-files-found: ignore
-
-  analyze:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Run CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: cpp
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2 

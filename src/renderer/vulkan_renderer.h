@@ -1,12 +1,18 @@
 #ifndef VULKAN_RENDERER_H
 #define VULKAN_RENDERER_H
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
+#ifdef _WIN32
+    #include <SDL.h>
+    #include <SDL_vulkan.h>
+#else
+    #include <SDL2/SDL.h>
+    #include <SDL2/SDL_vulkan.h>
+#endif
+
+#include <vulkan/vulkan.h>
 #include <optional>
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
 
 class VulkanRenderer {
 public:

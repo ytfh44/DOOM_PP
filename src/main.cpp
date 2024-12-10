@@ -1,7 +1,12 @@
 #include "game/game_logic.h"
 #include "renderer/vulkan_renderer.h"
 
-#include <SDL.h>
+#ifdef _WIN32
+    #include <SDL.h>
+#else
+    #include <SDL2/SDL.h>
+#endif
+
 #include <vulkan/vulkan.h>
 
 int main(int argc, char* argv[]) {
