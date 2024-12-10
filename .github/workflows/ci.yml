@@ -19,9 +19,11 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y autoconf automake libtool pkg-config
               sudo apt-get install -y libsdl2-dev libvulkan-dev
-              sudo apt-get install -y clang-format cppcheck
+              sudo apt-get install -y clang-format cppcheck lcov
             cc: gcc
             cxx: g++
+            coverage: true
+            coverage_flags: "--coverage -fprofile-arcs -ftest-coverage"
           - os: windows-latest
             install: |
               choco install autoconf automake libtool pkg-config
@@ -30,6 +32,8 @@ jobs:
               choco install llvm
             cc: gcc
             cxx: g++
+            coverage: false
+            coverage_flags: ""
 
     steps:
     - uses: actions/checkout@v3
@@ -71,12 +75,38 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-        ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra"
+        if [ "${{ matrix.coverage }}" = "true" ]; then
+          ./configure CFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" CXXFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}"
+        else
+          ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra"
+        fi
 
     - name: Build
       shell: bash
       run: |
         make -j$(nproc)
+
+    - name: Run tests with coverage
+      if: matrix.coverage
+      shell: bash
+      run: |
+        # 运行测试（当我们添加测试后取消注释）
+        # make check
+        
+        # 生成覆盖率报告
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --list coverage.info
+
+    - name: Upload coverage to Codecov
+      if: matrix.coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
