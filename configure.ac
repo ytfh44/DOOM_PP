@@ -2,6 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
 AC_INIT([DOOM_PP], [0.1], [your_email@example.com])
+AC_COPYRIGHT([BSD Zero Clause License])
 
 # 确保源码目录存在
 AC_CONFIG_SRCDIR([src/main.cpp])
