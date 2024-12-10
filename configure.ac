@@ -131,6 +131,36 @@ AC_CONFIG_FILES([Makefile
 # 生成配置头文件
 AC_CONFIG_HEADERS([config.h])
 
+# 添加测试支持
+AC_ARG_ENABLE([testing],
+    [AS_HELP_STRING([--enable-testing], [enable unit testing with Google Test])],
+    [enable_testing=$enableval],
+    [enable_testing=no])
+
+AM_CONDITIONAL([ENABLE_TESTING], [test "x$enable_testing" = "xyes"])
+
+if test "x$enable_testing" = "xyes"; then
+    # 检查Google Test
+    AC_LANG_PUSH([C++])
+    AC_CHECK_HEADERS([gtest/gtest.h], [],
+        [AC_MSG_ERROR([Google Test headers not found. Please install Google Test.])])
+    
+    save_LIBS=$LIBS
+    LIBS="$LIBS -lgtest -lgtest_main -lpthread"
+    AC_MSG_CHECKING([for Google Test library])
+    AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM([#include <gtest/gtest.h>],
+            [testing::InitGoogleTest(nullptr, nullptr);])],
+        [AC_MSG_RESULT([yes])],
+        [AC_MSG_RESULT([no])
+         AC_MSG_ERROR([Google Test library not found])])
+    LIBS=$save_LIBS
+    AC_LANG_POP([C++])
+    
+    # 导出Google Test变量
+    AC_SUBST([GTEST_LIBS], ["-lgtest -lgtest_main -lpthread"])
+fi
+
 AC_OUTPUT
 
 # 显示配置摘要

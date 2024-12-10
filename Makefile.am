@@ -1,6 +1,9 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = deps src
+if ENABLE_TESTING
+SUBDIRS += tests/unit
+endif
 
 bin_PROGRAMS = doom_pp
 
@@ -18,9 +21,7 @@ doom_pp_CPPFLAGS = \
 
 EXTRA_DIST = \
     README.md \
-    autogen.sh \
-    m4/ax_prog_wget.m4 \
-    m4/ax_prog_tar.m4
+    autogen.sh
 
 dist-hook:
 	chmod +x $(distdir)/autogen.sh 

@@ -20,6 +20,11 @@ jobs:
               sudo apt-get install -y autoconf automake libtool pkg-config
               sudo apt-get install -y libsdl2-dev libvulkan-dev
               sudo apt-get install -y clang-format cppcheck lcov
+              sudo apt-get install -y libgtest-dev
+              cd /usr/src/gtest
+              sudo cmake CMakeLists.txt
+              sudo make
+              sudo cp lib/*.a /usr/lib
             cc: gcc
             cxx: g++
             coverage: true
@@ -30,6 +35,13 @@ jobs:
               choco install mingw
               choco install vulkan-sdk
               choco install llvm
+              # Install Google Test
+              git clone https://github.com/google/googletest.git
+              cd googletest
+              cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=C:/gtest .
+              mingw32-make
+              mingw32-make install
+              cd ..
             cc: gcc
             cxx: g++
             coverage: false
@@ -44,6 +56,7 @@ jobs:
         path: |
           deps/build
           deps/install
+          googletest
         key: ${{ runner.os }}-deps-${{ hashFiles('deps/download_deps.sh') }}
         restore-keys: |
           ${{ runner.os }}-deps-
@@ -56,16 +69,19 @@ jobs:
       run: |
         echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
         echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          echo "GTEST_ROOT=C:/gtest" >> $GITHUB_ENV
+        fi
 
     - name: Code format check
       if: runner.os == 'Linux'
       run: |
-        find src -name '*.cpp' -o -name '*.h' | xargs clang-format -n -Werror
+        find src tests -name '*.cpp' -o -name '*.h' | xargs clang-format -n -Werror
 
     - name: Static analysis
       if: runner.os == 'Linux'
       run: |
-        cppcheck --enable=all --error-exitcode=1 --suppress=missingInclude src/
+        cppcheck --enable=all --error-exitcode=1 --suppress=missingInclude src/ tests/
 
     - name: Generate build system
       shell: bash
@@ -76,9 +92,9 @@ jobs:
       shell: bash
       run: |
         if [ "${{ matrix.coverage }}" = "true" ]; then
-          ./configure CFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" CXXFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}"
+          ./configure CFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" CXXFLAGS="-Wall -Wextra ${{ matrix.coverage_flags }}" --enable-testing
         else
-          ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra"
+          ./configure CFLAGS="-Wall -Wextra" CXXFLAGS="-Wall -Wextra" --enable-testing
         fi
 
     - name: Build
@@ -86,14 +102,17 @@ jobs:
       run: |
         make -j$(nproc)
 
+    - name: Run tests
+      shell: bash
+      run: |
+        make check
+
     - name: Run tests with coverage
       if: matrix.coverage
       shell: bash
       run: |
-        # 运行测试（当我们添加测试后取消注释）
-        # make check
-        
-        # 生成覆盖率报告
+        # 运行测试并生成覆盖率报告
+        make check
         lcov --capture --directory . --output-file coverage.info
         lcov --remove coverage.info '/usr/*' --output-file coverage.info
         lcov --list coverage.info
@@ -115,6 +134,7 @@ jobs:
         path: |
           doom_pp
           doom_pp.exe
+          tests/unit/test_runner
         if-no-files-found: ignore
 
   analyze:
